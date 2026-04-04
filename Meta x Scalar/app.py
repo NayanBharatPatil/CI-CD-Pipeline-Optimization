@@ -10,11 +10,11 @@ from tasks.hard import get_hard_config
 
 app = FastAPI()
 
-# Global environment instance (for OpenEnv API)
+# Global env for OpenEnv API
 current_env = None
 
 # ----------------------------
-# 🔥 UI (No Jinja - stable)
+# 🔥 SIMPLE UI (WORKING)
 # ----------------------------
 HTML_PAGE = """
 <!DOCTYPE html>
@@ -88,15 +88,20 @@ def home():
 
 
 # ----------------------------
-# 🔥 OpenEnv APIs (IMPORTANT)
+# 🔥 OpenEnv APIs (FIXED FORMAT)
 # ----------------------------
 
 @app.post("/reset")
 def reset_env():
     global current_env
     current_env = PipelineEnv()
+
     state = current_env.reset()
-    return {"state": state}
+
+    return {
+        "observation": state,
+        "info": {}
+    }
 
 
 @app.post("/step")
@@ -104,14 +109,15 @@ def step_env(action: Dict):
     global current_env
 
     if current_env is None:
-        return {"error": "Environment not initialized. Call /reset first."}
+        return {"error": "Call /reset first"}
 
     state, reward, done = current_env.step(action)
 
     return {
-        "state": state,
+        "observation": state,
         "reward": reward,
-        "done": done
+        "done": done,
+        "info": {}
     }
 
 
@@ -120,13 +126,15 @@ def get_state():
     global current_env
 
     if current_env is None:
-        return {"error": "Environment not initialized."}
+        return {"error": "Not initialized"}
 
-    return {"state": current_env.state()}
+    return {
+        "observation": current_env.state()
+    }
 
 
 # ----------------------------
-# 🔥 Simulation Logic (UI use)
+# 🔥 SIMULATION (UI)
 # ----------------------------
 
 def run_simulation(config):
@@ -162,7 +170,7 @@ def run_simulation(config):
 
 
 # ----------------------------
-# 🔥 UI Endpoints
+# 🔥 UI ROUTES
 # ----------------------------
 
 @app.get("/run/easy")
