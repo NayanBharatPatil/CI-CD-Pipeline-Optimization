@@ -1,22 +1,133 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from typing import Dict
 
-from agents.baseline_agent import BaselineAgent
 from env.environment import PipelineEnv
+from agents.baseline_agent import BaselineAgent
 from tasks.easy import get_easy_config
 from tasks.medium import get_medium_config
 from tasks.hard import get_hard_config
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory="templates")
+# Global environment instance (for OpenEnv API)
+current_env = None
 
+# ----------------------------
+# 🔥 UI (No Jinja - stable)
+# ----------------------------
+HTML_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CI/CD Pipeline Optimizer</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background: #0f172a;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .easy { background: green; }
+        .medium { background: orange; }
+        .hard { background: red; }
+        #output {
+            margin-top: 20px;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🚀 CI/CD Pipeline Optimization</h1>
+
+<button class="easy" onclick="runTask('easy')">Easy</button>
+<button class="medium" onclick="runTask('medium')">Medium</button>
+<button class="hard" onclick="runTask('hard')">Hard</button>
+
+<div id="output">Click a button to run simulation...</div>
+
+<script>
+async function runTask(level) {
+    document.getElementById("output").innerText = "Running...";
+
+    const res = await fetch(`/run/${level}`);
+    const data = await res.json();
+
+    let text = `Steps: ${data.steps}\\nScore: ${data.score}\\n\\n`;
+
+    data.logs.forEach(log => {
+        text += `Step ${log.step} | Reward: ${log.reward}\\n`;
+    });
+
+    document.getElementById("output").innerText = text;
+}
+</script>
+
+</body>
+</html>
+"""
 
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+def home():
+    return HTML_PAGE
 
+
+# ----------------------------
+# 🔥 OpenEnv APIs (IMPORTANT)
+# ----------------------------
+
+@app.post("/reset")
+def reset_env():
+    global current_env
+    current_env = PipelineEnv()
+    state = current_env.reset()
+    return {"state": state}
+
+
+@app.post("/step")
+def step_env(action: Dict):
+    global current_env
+
+    if current_env is None:
+        return {"error": "Environment not initialized. Call /reset first."}
+
+    state, reward, done = current_env.step(action)
+
+    return {
+        "state": state,
+        "reward": reward,
+        "done": done
+    }
+
+
+@app.get("/state")
+def get_state():
+    global current_env
+
+    if current_env is None:
+        return {"error": "Environment not initialized."}
+
+    return {"state": current_env.state()}
+
+
+# ----------------------------
+# 🔥 Simulation Logic (UI use)
+# ----------------------------
 
 def run_simulation(config):
     env = PipelineEnv()
@@ -27,7 +138,6 @@ def run_simulation(config):
     done = False
     steps = 0
     total_reward = 0
-
     logs = []
 
     while not done and steps < 20:
@@ -50,6 +160,10 @@ def run_simulation(config):
         "logs": logs
     }
 
+
+# ----------------------------
+# 🔥 UI Endpoints
+# ----------------------------
 
 @app.get("/run/easy")
 def run_easy():
