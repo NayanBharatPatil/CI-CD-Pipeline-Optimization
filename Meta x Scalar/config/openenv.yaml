@@ -1,0 +1,50 @@
+id: cicd_pipeline_optimization_env
+
+description: >
+  A CI/CD pipeline simulation environment where an agent schedules tasks
+  with dependencies under CPU constraints to optimize execution time,
+  resource usage, and task priorities.
+
+version: 1.0
+
+action_space:
+  type: dict
+  description: Start a list of tasks
+  fields:
+    start:
+      type: list
+      items: task_id
+
+observation_space:
+  type: dict
+  fields:
+    tasks:
+      type: dict
+      description: Task states (pending, running, done)
+    time:
+      type: integer
+    cpu:
+      type: dict
+      fields:
+        total:
+          type: integer
+        used:
+          type: integer
+
+reward:
+  description: >
+    Reward is based on task completion (priority-weighted),
+    time penalty, invalid actions, and CPU utilization.
+
+tasks:
+  - name: easy
+    description: Small pipeline with linear dependency
+  - name: medium
+    description: Parallel execution after dependency
+  - name: hard
+    description: Complex DAG with multiple dependencies and constraints
+
+api:
+  reset: Initializes environment
+  step: Executes action and returns next state
+  state: Returns current environment state

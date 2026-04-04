@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CI/CD Pipeline Optimizer</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background: #0f172a;
+            color: white;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .easy { background: #22c55e; }
+        .medium { background: #eab308; }
+        .hard { background: #ef4444; }
+
+        #output {
+            margin-top: 20px;
+            text-align: left;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 CI/CD Pipeline Optimization</h1>
+
+    <button class="easy" onclick="runTask('easy')">Run Easy</button>
+    <button class="medium" onclick="runTask('medium')">Run Medium</button>
+    <button class="hard" onclick="runTask('hard')">Run Hard</button>
+
+    <div id="output">Click a button to run simulation...</div>
+
+    <script>
+        async function runTask(level) {
+            document.getElementById("output").innerText = "Running...";
+
+            const res = await fetch(`/run/${level}`);
+            const data = await res.json();
+
+            let text = `Steps: ${data.steps}\nScore: ${data.score}\n\n`;
+
+            data.logs.forEach(log => {
+                text += `Step ${log.step} | Reward: ${log.reward}\n`;
+            });
+
+            document.getElementById("output").innerText = text;
+        }
+    </script>
+
+</body>
+</html>
