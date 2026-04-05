@@ -1,15 +1,20 @@
 [project]
 name = "cicd-pipeline-env"
 version = "1.0.0"
-description = "CI/CD Pipeline Optimization Environment using OpenEnv"
+description = "CI/CD Pipeline Optimization Environment"
 authors = [
     {name = "Nayan Patil"}
 ]
+
 dependencies = [
     "fastapi",
     "uvicorn",
-    "pyyaml"
+    "pyyaml",
+    "openenv-core>=0.2.0"
 ]
+
+[project.scripts]
+server = "server.app:app"
 
 [build-system]
 requires = ["setuptools", "wheel"]
