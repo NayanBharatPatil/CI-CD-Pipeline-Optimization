@@ -91,12 +91,14 @@ def home():
 # 🔥 OpenEnv APIs (FIXED FORMAT)
 # ----------------------------
 
+
 @app.post("/reset")
 def reset_env():
     global current_env
     current_env = PipelineEnv()
 
-    state = current_env.reset()
+    config = get_easy_config()   
+    state = current_env.reset(config)
 
     return {
         "observation": state,
@@ -105,20 +107,22 @@ def reset_env():
 
 
 @app.post("/step")
-def step_env(action: Dict):
+def step_env(action: dict):
     global current_env
 
     if current_env is None:
         return {"error": "Call /reset first"}
 
-    state, reward, done = current_env.step(action)
-
-    return {
-        "observation": state,
-        "reward": reward,
-        "done": done,
-        "info": {}
-    }
+    try:
+        state, reward, done = current_env.step(action)
+        return {
+            "observation": state,
+            "reward": reward,
+            "done": done,
+            "info": {}
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/state")
