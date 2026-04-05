@@ -1,0 +1,18 @@
+name: cicd-pipeline-env
+version: 1.0
+
+description: CI/CD Pipeline Optimization Environment
+
+api:
+  reset: POST /reset
+  step: POST /step
+  state: GET /state
+
+observation_space:
+  type: object
+
+action_space:
+  type: object
+
+reward:
+  type: float
