@@ -10,12 +10,10 @@ from tasks.hard import get_hard_config
 
 app = FastAPI()
 
-# Global env for OpenEnv API
+
 current_env = None
 
-# ----------------------------
-# 🔥 SIMPLE UI (WORKING)
-# ----------------------------
+
 HTML_PAGE = """
 <!DOCTYPE html>
 <html>
@@ -53,7 +51,7 @@ HTML_PAGE = """
 </head>
 <body>
 
-<h1>🚀 CI/CD Pipeline Optimization</h1>
+<h1> CI/CD Pipeline Optimization</h1>
 
 <button class="easy" onclick="runTask('easy')">Easy</button>
 <button class="medium" onclick="runTask('medium')">Medium</button>
@@ -87,23 +85,32 @@ def home():
     return HTML_PAGE
 
 
-# ----------------------------
-# 🔥 OpenEnv APIs (FIXED FORMAT)
-# ----------------------------
-
-
+from tasks.easy import get_easy_config  
 @app.post("/reset")
 def reset_env():
     global current_env
-    current_env = PipelineEnv()
 
-    config = get_easy_config()   
-    state = current_env.reset(config)
+    try:
+        current_env = PipelineEnv()
 
-    return {
-        "observation": state,
-        "info": {}
-    }
+        config = get_easy_config()
+
+  
+        if not config or "tasks" not in config:
+            return {"error": "Invalid config format"}
+
+        state = current_env.reset(config)
+
+        return {
+            "observation": state,
+            "info": {}
+        }
+
+    except Exception as e:
+        return {
+            "error": f"Reset failed: {str(e)}"
+        }
+
 
 
 @app.post("/step")
@@ -136,11 +143,6 @@ def get_state():
         "observation": current_env.state()
     }
 
-
-# ----------------------------
-# 🔥 SIMULATION (UI)
-# ----------------------------
-
 def run_simulation(config):
     env = PipelineEnv()
     agent = BaselineAgent()
@@ -172,10 +174,6 @@ def run_simulation(config):
         "logs": logs
     }
 
-
-# ----------------------------
-# 🔥 UI ROUTES
-# ----------------------------
 
 @app.get("/run/easy")
 def run_easy():
