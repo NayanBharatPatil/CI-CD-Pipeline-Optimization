@@ -8,28 +8,25 @@ class PipelineEnv:
         self.total_cpu = 4
         self.used_cpu = 0
 
-    def reset(self, config=None):
+   def reset(self, config=None):
+    if config is None:
+        raise ValueError("Config must be provided")
 
-        if config is None:
-            raise ValueError("Config must be provided")
-
-        self.tasks = {
-            task_id: {
-                "status": "pending",
-                "duration": data["duration"],
-                "cpu": data["cpu"],
-                "priority": data["priority"]
-            }
-            for task_id, data in config["tasks"].items()
+    self.tasks = {
+        k: {
+            "status": "pending",
+            "duration": v["duration"],
+            "cpu": v["cpu"]
         }
+        for k, v in config["tasks"].items()
+    }
 
-        self.dependencies = config["dependencies"]
+    self.dependencies = config.get("dependencies", {})
+    self.total_cpu = config.get("total_cpu", 4)
+    self.used_cpu = 0
+    self.time = 0
 
-        self.current_time = 0
-        self.used_cpu = 0
-        self.done = False
-
-        return self.state()
+    return self.state()
 
     def state(self):
         return {
