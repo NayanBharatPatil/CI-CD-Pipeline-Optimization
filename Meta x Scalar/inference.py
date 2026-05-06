@@ -4,7 +4,6 @@ from openai import OpenAI
 from env.environment import PipelineEnv
 from agents.baseline_agent import BaselineAgent
 from tasks.easy import get_easy_config
-
 def call_llm():
     try:
         client = OpenAI(
@@ -24,8 +23,6 @@ def call_llm():
 
     except Exception as e:
         return f"LLM error: {str(e)}"
-
-
 def main():
     try:
         env = PipelineEnv()
