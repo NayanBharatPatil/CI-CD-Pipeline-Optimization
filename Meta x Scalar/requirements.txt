@@ -2,3 +2,4 @@ fastapi
 uvicorn
 pyyaml
 openenv-core>=0.2.0
+pyyaml
